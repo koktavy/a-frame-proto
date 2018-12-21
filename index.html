@@ -11,7 +11,11 @@
           if (window.DeviceOrientationEvent) {
             window.addEventListener("deviceorientationabsolute", function(orientation) {
               var heading = compassHeading(orientation.alpha, orientation.beta, orientation.gamma);
-              heading = "Heading: " + Math.floor(heading) + "\nAbsolute? " + orientation.absolute;
+              heading = "Heading: " + Math.floor(heading) + "\n Rotations: "
+                + Math.floor(orientation.alpha)
+                + ", " + Math.floor(orientation.beta)
+                + ", " + Math.floor(orientation.gamma)
+                + "\nAbsolute? " + orientation.absolute;
               document.getElementById("test").setAttribute("value", heading);
             });
           } else {
