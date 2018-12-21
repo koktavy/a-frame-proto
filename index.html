@@ -4,7 +4,7 @@
     <title>Textures - A-Frame School</title>
     <meta name="description" content="Textures - A-Frame School">
     <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
-    <!-- Start mobile webcam, stream to the a-assets video element -->
+
     <script>
       AFRAME.registerComponent('compass', {
         init: function () {
@@ -16,7 +16,7 @@
                 + ", " + Math.floor(orientation.beta)
                 + ", " + Math.floor(orientation.gamma)
                 + "\nAbsolute? " + orientation.absolute;
-              document.getElementById("test").setAttribute("value", heading);
+              document.getElementById("testText").setAttribute("value", heading);
             });
           } else {
             alert("No Device Orientation support.");
@@ -24,8 +24,25 @@
         }
       });
 
-      var user;
+      // Preliminary rotation test based on device orientation.
+      // May need to be range adjusted from -180 to 180? Way too sensitive as it is.
+      // Probably also on the wrong axis.
+      AFRAME.registerComponent('rotatewithdevice', {
+        init: function () {
+          if (window.DeviceOrientationEvent) {
+            window.addEventListener("deviceorientationabsolute", function(orientation) {
+              document.getElementById("testBox").object3D.rotation.x = orientation.alpha / 10;
+              document.getElementById("testBox").object3D.rotation.y = orientation.beta / 10;
+              document.getElementById("testBox").object3D.rotation.z = orientation.gamma / 10;
+            });
+          }
+          else {
+            alert("No Device Orientation support.");
+          }
+        }
+      });
 
+      var user;
       var degtorad = Math.PI / 180; // Degree-to-Radian conversion
 
       function compassHeading( alpha, beta, gamma ) {
@@ -64,8 +81,7 @@
       </a-assets>
 
       <a-camera position="0 3 3">
-        <a-text
-          id="test"
+        <a-text id="testText"
           compass
           value="Hello test!"
           align="center"
@@ -74,8 +90,12 @@
         </a-text>
       </a-camera>
 
-      <a-box
-        position="-1 0.5 -2.5"
+      <!-- Why does nyu.jpg only sometimes load? (Chrome) -->
+      <!-- Position = "(left<->right) (up<->down) (far<->near)" -->
+      <a-box id="testBox"
+        rotatewithdevice
+        position="-1 2 -2"
+        rotation="0 0 0"
         material="src: #nyu">
       </a-box>
       <a-sphere
@@ -97,7 +117,7 @@
       <a-circle
         position="0 0 -4"
         rotation="-90 0 0"
-        radius="3"
+        radius="4"
         material="color: #AD50FF"
         shadow>
       </a-circle>
