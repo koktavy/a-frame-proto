@@ -1,45 +1,53 @@
 <!doctype HTML>
 <html>
-<!-- Include A-Frame -->
-<script src="/static/js/aframe.min.js"></script>
-<!-- Include ar.js for A-Frame -->
-<script src="/static/js/aframe-ar.js"></script>
-<!-- Include A-Frame-Extras -->
-<script src="/static/js/aframe-extras.min.js"></script>
+
+<head>
+    <title>Kimmel Club Fest WIP</title>
+    <!-- <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"> -->
+    <!-- Include A-Frame and extras -->
+    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-orbit-controls@1.0.0/dist/aframe-orbit-controls.min.js"></script>
+    <script src="https://unpkg.com/aframe-supercraft-loader@1.1.3/dist/aframe-supercraft-loader.js"></script>
+    <!-- Include ar.js for A-Frame -->
+    <!-- <script src="/static/js/aframe-ar.js"></script> -->
+</head>
 
 <body style='margin: 0px; overflow: hidden;'>
-  <a-scene embedded arjs='debugUIEnabled: false; detectionMode: color;'>
-    <a-assets>
-      <video id="webcam" playsinline></video>
-      <img id="nyu" src="/image/nyu.jpg" crossorigin="anonymous">
-		  <img id="nyu-map" src="/image/nyu-map.jpg" crossorigin="anonymous">
-		  <img id="ny" src="/image/NY.jpg" crossorigin="anonymous">
-		  <img id="sky" src="/image/environment_header.jpg" crossorigin="anonymous">
-		<!--<a-asset-item if="cal" src="/static/gltf/scene.gltf"></a-asset-item>-->
-	  </a-assets>
+    <a-scene id="scene">
+        <!-- Use this Asset Management System to ensure assets are cached and loaded before rendering -->
+        <a-assets>
+            <img id="nyu" src="/image/nyu.jpg" crossorigin="anonymous">
+            <img id="sky" src="/image/sky.jpg" crossorigin="anonymous">
+        </a-assets>
 
-    <!-- load gltf model -->
-	  <!-- <a-box src="#nyu" position='0 0.5 0' material='opacity: 0.5;'></a-box>-->   <!--testing cube(3D object) -->
-	  <!--<a-image src="nyu-map.jpg" rotation="-160 0 0"> </a-image> -->
-    <!--testing map(2D image)-->
-    <!--<a-marker-camera type='pattern' url='pattern-marker.patt'></a-marker-camera> -->
+        <a-sky id="skybox"
+            rotation="0 130 0"
+            src="#sky">
+        </a-sky>
 
-	  <!--<a-marker-camera preset='hiro'></a-marker-camera>-->
-    <a-marker-camera preset='hiro'>
+        <!-- Position = "(left<->right) (down<->up) (far<->near)" -->
+        <!-- Rotation = "(x, y, z)" -->
+        <a-box id="kimmel"
+          position="0 -0.3 -3"
+          rotation="0 0 0"
+          scale="1 2 1"
+          material="src: #nyu"
+          shadow>
+        </a-box>
 
-  		<!--This is a personalized model :  -->
-  		<a-entity gltf-model="scene.gltf" scale="1 1 1" rotation="-160 0 0" position="0 1 0"></a-entity>
+        <a-circle
+          position="0 -1.3 -3"
+          rotation="-90 0 0"
+          radius="1.2"
+          material="color: #33BBBB"
+          shadow>
+        </a-circle>
 
-  		<!--This is a nyu cube with animation :  -->
-  		<!--<a-box src="#nyu" position='0 0.5 0' material='opacity: 0.5;'>
-  			<a-animation attribute="scale" from="1 1 1" to="3 3 3" repeat="infinite"
-  			             dur="1000"  direction="alternate" ></a-animation>-->
-  		<!-- </a-box> -->
-  		<a-cursor></a-cursor>
-    </a-marker-camera>
-	  <!--<a-marker-camera preset='custom' type='pattern' url='/static/marker/pattern-marker.patt'>-->
-      <!--<a-entity gltf-model="/static/gltf/scene.gltf" animation-mixer scale="1 1 1" rotation="-120 0 0" position="0 3 0"> </a-entity>-->
+        <!-- <a-light type="ambient"></a-light>
+        <a-light type="directional" intensity="1.6" position="-5 4 -1.2"></a-light> -->
 
-  </a-scene>
+        <a-entity camera look-controls orbit-controls="target: 0 -0.8 -3; minDistance: 1.3; maxDistance: 8; rotateSpeed: 0.04; minPolarAngle: 17; maxPolarAngle: 83; initialPosition: 0 0 0"></a-entity> <!-- no look-controls attribute locks the camera -->
+    </a-scene>
 </body>
+
 </html>
