@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Textures - A-Frame School</title>
+    <meta name="description" content="Textures - A-Frame School">
+    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+
+    <script>
+      AFRAME.registerComponent('compass', {
+        init: function () {
+          if (window.DeviceOrientationEvent) {
+            window.addEventListener("deviceorientationabsolute", function(orientation) {
+              var heading = compassHeading(orientation.alpha, orientation.beta, orientation.gamma);
+              heading = "Heading: " + Math.floor(heading) + "\n Rotations: "
+                + Math.floor(orientation.alpha)
+                + ", " + Math.floor(orientation.beta)
+                + ", " + Math.floor(orientation.gamma)
+                + "\nAbsolute? " + orientation.absolute;
+              document.getElementById("testText").setAttribute("value", heading);
+            });
+          } else {
+            alert("No Device Orientation support.");
+          }
+        }
+      });
+
+      var degtorad = Math.PI / 180; // Degree-to-Radian conversion
+
+      // Preliminary rotation test based on device orientation.
+      // Axes only respond as expected with phones flat on the table...
+      AFRAME.registerComponent('rotatewithdevice', {
+        init: function () {
+          if (window.DeviceOrientationEvent) {
+            window.addEventListener("deviceorientationabsolute", function(orientation) {
+              document.getElementById("testBox").object3D.rotation.x = orientation.beta * degtorad;
+              document.getElementById("testBox").object3D.rotation.y = Math.abs(orientation.alpha) * degtorad;
+              document.getElementById("testBox").object3D.rotation.z = Math.abs(orientation.gamma) * degtorad;
+            });
+          }
+          else {
+            alert("No Device Orientation support.");
+          }
+        }
+      });
+
+      var user;
+
+      function compassHeading( alpha, beta, gamma ) {
+        var _x = beta  ? beta  * degtorad : 0; // beta value
+        var _y = gamma ? gamma * degtorad : 0; // gamma value
+        var _z = alpha ? alpha * degtorad : 0; // alpha value
+        var cX = Math.cos( _x );
+        var cY = Math.cos( _y );
+        var cZ = Math.cos( _z );
+        var sX = Math.sin( _x );
+        var sY = Math.sin( _y );
+        var sZ = Math.sin( _z );
+        // Calculate Vx and Vy components
+        var Vx = - cZ * sY - sZ * sX * cY;
+        var Vy = - sZ * sY + cZ * sX * cY;
+        // Calculate compass heading
+        var compassHeading = Math.atan( Vx / Vy );
+        // Convert compass heading to use whole unit circle
+        if( Vy < 0 ) {
+          compassHeading += Math.PI;
+        } else if( Vx < 0 ) {
+          compassHeading += 2 * Math.PI;
+        }
+        return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
+      }
+    </script>
+  </head>
+
+  <body>
+    <!-- Main A-Frame -->
+    <a-scene>
+      <!-- Asset references -->
+      <a-assets>
+        <video id="webcam" playsinline></video>
+        <img id="nyu" src="nyu.jpg" crossorigin="anonymous">
+      </a-assets>
+
+      <a-camera position="0 3 3">
+        <a-text id="testText"
+          compass
+          value="Hello test!"
+          align="center"
+          geometry="primitive:plane; width:3"
+          position="0 2 -3.1">
+        </a-text>
+      </a-camera>
+
+      <!-- Why does nyu.jpg only sometimes load? (Chrome) -->
+      <!-- Position = "(left<->right) (up<->down) (far<->near)" -->
+      <a-box id="testBox"
+        rotatewithdevice
+        position="-1 2 -2"
+        rotation="0 0 0"
+        material="src: #nyu">
+      </a-box>
+      <a-sphere
+        radius="0.5"
+        position="0.5 2 -3"
+        material="color: blue">
+      </a-sphere>
+      <a-cone
+        height="2"
+        radius-top="0.01"
+        position="0 1 -5"
+        material="color: green">
+      </a-cone>
+      <a-box
+        position="1 0.5 -3"
+        material="src: #webcam">
+      </a-box>
+
+      <a-circle
+        position="0 0 -4"
+        rotation="-90 0 0"
+        radius="4"
+        material="color: #AD50FF"
+        shadow>
+      </a-circle>
+
+      <!-- Scene lighting for polish -->
+      <a-light type="ambient" color="#445451"></a-light>
+      <a-light type="point" intensity="2" position="2 4 4"></a-light>
+    </a-scene>
+
+    <script>
+      navigator.mediaDevices.getUserMedia({audio: false, video: true}).then(stream => {
+        let $video = document.querySelector('video')
+        $video.srcObject = stream
+        $video.onloadedmetadata = () => {
+          $video.play()
+        }
+      })
+    </script>
+  </body>
+</html>

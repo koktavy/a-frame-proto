@@ -1,140 +1,45 @@
-<!DOCTYPE html>
+<!doctype HTML>
 <html>
-  <head>
-    <title>Textures - A-Frame School</title>
-    <meta name="description" content="Textures - A-Frame School">
-    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+<!-- Include A-Frame -->
+<script src="/static/js/aframe.min.js"></script>
+<!-- Include ar.js for A-Frame -->
+<script src="/static/js/aframe-ar.js"></script>
+<!-- Include A-Frame-Extras -->
+<script src="/static/js/aframe-extras.min.js"></script>
 
-    <script>
-      AFRAME.registerComponent('compass', {
-        init: function () {
-          if (window.DeviceOrientationEvent) {
-            window.addEventListener("deviceorientationabsolute", function(orientation) {
-              var heading = compassHeading(orientation.alpha, orientation.beta, orientation.gamma);
-              heading = "Heading: " + Math.floor(heading) + "\n Rotations: "
-                + Math.floor(orientation.alpha)
-                + ", " + Math.floor(orientation.beta)
-                + ", " + Math.floor(orientation.gamma)
-                + "\nAbsolute? " + orientation.absolute;
-              document.getElementById("testText").setAttribute("value", heading);
-            });
-          } else {
-            alert("No Device Orientation support.");
-          }
-        }
-      });
+<body style='margin: 0px; overflow: hidden;'>
+  <a-scene embedded arjs='debugUIEnabled: false; detectionMode: color;'>
+    <a-assets>
+      <video id="webcam" playsinline></video>
+      <img id="nyu" src="/image/nyu.jpg" crossorigin="anonymous">
+		  <img id="nyu-map" src="/image/nyu-map.jpg" crossorigin="anonymous">
+		  <img id="ny" src="/image/NY.jpg" crossorigin="anonymous">
+		  <img id="sky" src="/image/environment_header.jpg" crossorigin="anonymous">
+		<!--<a-asset-item if="cal" src="/static/gltf/scene.gltf"></a-asset-item>-->
+	  </a-assets>
 
-      // Preliminary rotation test based on device orientation.
-      // May need to be range adjusted from -180 to 180? Way too sensitive as it is.
-      // Probably also on the wrong axis.
-      AFRAME.registerComponent('rotatewithdevice', {
-        init: function () {
-          if (window.DeviceOrientationEvent) {
-            window.addEventListener("deviceorientationabsolute", function(orientation) {
-              document.getElementById("testBox").object3D.rotation.x = orientation.alpha / 10;
-              document.getElementById("testBox").object3D.rotation.y = orientation.beta / 10;
-              document.getElementById("testBox").object3D.rotation.z = orientation.gamma / 10;
-            });
-          }
-          else {
-            alert("No Device Orientation support.");
-          }
-        }
-      });
+    <!-- load gltf model -->
+	  <!-- <a-box src="#nyu" position='0 0.5 0' material='opacity: 0.5;'></a-box>-->   <!--testing cube(3D object) -->
+	  <!--<a-image src="nyu-map.jpg" rotation="-160 0 0"> </a-image> -->
+    <!--testing map(2D image)-->
+    <!--<a-marker-camera type='pattern' url='pattern-marker.patt'></a-marker-camera> -->
 
-      var user;
-      var degtorad = Math.PI / 180; // Degree-to-Radian conversion
+	  <!--<a-marker-camera preset='hiro'></a-marker-camera>-->
+    <a-marker-camera preset='hiro'>
 
-      function compassHeading( alpha, beta, gamma ) {
-        var _x = beta  ? beta  * degtorad : 0; // beta value
-        var _y = gamma ? gamma * degtorad : 0; // gamma value
-        var _z = alpha ? alpha * degtorad : 0; // alpha value
-        var cX = Math.cos( _x );
-        var cY = Math.cos( _y );
-        var cZ = Math.cos( _z );
-        var sX = Math.sin( _x );
-        var sY = Math.sin( _y );
-        var sZ = Math.sin( _z );
-        // Calculate Vx and Vy components
-        var Vx = - cZ * sY - sZ * sX * cY;
-        var Vy = - sZ * sY + cZ * sX * cY;
-        // Calculate compass heading
-        var compassHeading = Math.atan( Vx / Vy );
-        // Convert compass heading to use whole unit circle
-        if( Vy < 0 ) {
-          compassHeading += Math.PI;
-        } else if( Vx < 0 ) {
-          compassHeading += 2 * Math.PI;
-        }
-        return compassHeading * ( 180 / Math.PI ); // Compass Heading (in degrees)
-      }
-    </script>
-  </head>
+  		<!--This is a personalized model :  -->
+  		<a-entity gltf-model="scene.gltf" scale="1 1 1" rotation="-160 0 0" position="0 1 0"></a-entity>
 
-  <body>
-    <!-- Main A-Frame -->
-    <a-scene>
-      <!-- Asset references -->
-      <a-assets>
-        <video id="webcam" playsinline></video>
-        <img id="nyu" src="nyu.jpg" crossorigin="anonymous">
-      </a-assets>
+  		<!--This is a nyu cube with animation :  -->
+  		<!--<a-box src="#nyu" position='0 0.5 0' material='opacity: 0.5;'>
+  			<a-animation attribute="scale" from="1 1 1" to="3 3 3" repeat="infinite"
+  			             dur="1000"  direction="alternate" ></a-animation>-->
+  		<!-- </a-box> -->
+  		<a-cursor></a-cursor>
+    </a-marker-camera>
+	  <!--<a-marker-camera preset='custom' type='pattern' url='/static/marker/pattern-marker.patt'>-->
+      <!--<a-entity gltf-model="/static/gltf/scene.gltf" animation-mixer scale="1 1 1" rotation="-120 0 0" position="0 3 0"> </a-entity>-->
 
-      <a-camera position="0 3 3">
-        <a-text id="testText"
-          compass
-          value="Hello test!"
-          align="center"
-          geometry="primitive:plane; width:3"
-          position="0 2 -3.1">
-        </a-text>
-      </a-camera>
-
-      <!-- Why does nyu.jpg only sometimes load? (Chrome) -->
-      <!-- Position = "(left<->right) (up<->down) (far<->near)" -->
-      <a-box id="testBox"
-        rotatewithdevice
-        position="-1 2 -2"
-        rotation="0 0 0"
-        material="src: #nyu">
-      </a-box>
-      <a-sphere
-        radius="0.5"
-        position="0.5 2 -3"
-        material="color: blue">
-      </a-sphere>
-      <a-cone
-        height="2"
-        radius-top="0.01"
-        position="0 1 -5"
-        material="color: green">
-      </a-cone>
-      <a-box
-        position="1 0.5 -3"
-        material="src: #webcam">
-      </a-box>
-
-      <a-circle
-        position="0 0 -4"
-        rotation="-90 0 0"
-        radius="4"
-        material="color: #AD50FF"
-        shadow>
-      </a-circle>
-
-      <!-- Scene lighting for polish -->
-      <a-light type="ambient" color="#445451"></a-light>
-      <a-light type="point" intensity="2" position="2 4 4"></a-light>
-    </a-scene>
-
-    <script>
-      navigator.mediaDevices.getUserMedia({audio: false, video: true}).then(stream => {
-        let $video = document.querySelector('video')
-        $video.srcObject = stream
-        $video.onloadedmetadata = () => {
-          $video.play()
-        }
-      })
-    </script>
-  </body>
+  </a-scene>
+</body>
 </html>

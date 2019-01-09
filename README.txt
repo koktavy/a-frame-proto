@@ -1,1 +1,0 @@
-Using the local-web-server node package, launch with command 'ws' from a terminal in this directory.
