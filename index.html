@@ -3,21 +3,119 @@
 
 <head>
     <title>Kimmel Club Fest WIP</title>
-    <!-- <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"> -->
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="/favicon.ico" />
     <!-- Include A-Frame and extras -->
     <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-orbit-controls@1.0.0/dist/aframe-orbit-controls.min.js"></script>
     <script src="https://unpkg.com/aframe-supercraft-loader@1.1.3/dist/aframe-supercraft-loader.js"></script>
+    <!-- This script is only for multi-sided textures on primitives, won't be needed with a model -->
+    <script src="https://cdn.rawgit.com/elbobo/aframe-multisrc-component/b6d23310/dist/0.3/aframe-multisrc-component.js"></script>
     <!-- Include ar.js for A-Frame -->
     <!-- <script src="/static/js/aframe-ar.js"></script> -->
+
+    <!-- Use mouseenter, mouseleave
+        to determine if the user mouseups
+         the same object they mousedowned -->
+    <script>
+        AFRAME.registerComponent('a-click', {
+            schema: { // Attributes
+                text: {default: 'Something was clicked!'}
+            },
+
+            init: function () {
+                var data = this.data;
+                var el = this.el;
+                el.addEventListener('mousedown', (evt) => {
+                    mouseCheck(evt);
+                });
+            }
+        });
+
+        var mouseMoved = false;
+
+        function mouseCheck(e) {
+            var el = e.target;
+            //console.log('mousedown on: ' + el.id);
+            el.addEventListener('mouseleave', leaveListener);
+            el.addEventListener('mouseenter', enterListener);
+            el.addEventListener('mouseup', (evt) => {
+                upListener(e);
+            });
+        }
+
+        function leaveListener() {
+            //console.log('mouse left');
+            mouseMoved = true;
+        }
+        function enterListener() {
+            //console.log('mouse entered');
+            if (mouseMoved) {
+                mouseMoved = false;
+            }
+        }
+        function upListener(evt) {
+            var el = evt.target
+            el.removeEventListener('mouseleave', leaveListener);
+            el.removeEventListener('mouseenter', enterListener);
+            //console.log('Did mouse move? ' + mouseMoved);
+            if (!mouseMoved) {
+                mouseMoved = false;
+                // Check for active highlighting
+                if (el.getAttribute('highlight-status').active) {
+                    // Swap display for this floor
+                    alert('Load ' + el.id + ' :)');
+                }
+                else {
+                    // emit highlight-status
+                    el.setAttribute('highlight-status', {event: 'highlight-update', active: true});
+                    el.emit('highlight-update');
+                }
+                console.log(el.id + ' clicked!');
+            }
+            el.removeEventListener('mouseup', upListener);
+        }
+
+        // Maintains a highlight status and adds a status listener.
+        AFRAME.registerComponent('highlight-status', {
+            schema: {
+                event: {type: 'string', default: ''},
+                active: {type: 'boolean', default: false}
+            },
+            init: function () {
+                var el = this.el;
+                el.addEventListener('highlight-update', (evt) => {
+                    console.log(this);
+                    // console.log(el);
+                    if (el.id != this.el.id) {
+                        el.setAttribute('opacity', 0);
+                    }
+                    else {
+                        // Add highlighting to this element
+                        el.setAttribute('opacity', 0.5);
+                    }
+                });
+            }
+        });
+
+        // Remove opacity if another element was highlighted
+        // function highlightListener(el) {
+        //
+        // }
+    </script>
 </head>
 
 <body style='margin: 0px; overflow: hidden;'>
     <a-scene id="scene">
         <!-- Use this Asset Management System to ensure assets are cached and loaded before rendering -->
         <a-assets>
-            <img id="nyu" src="/image/nyu.jpg" crossorigin="anonymous">
-            <img id="sky" src="/image/sky.jpg" crossorigin="anonymous">
+            <img id="kimmel-right" src="/image/kimmel-side-square.jpg" />
+            <img id="kimmel-left" src="/image/kimmel-side-square.jpg" />
+            <img id="kimmel-top" src="/image/nyu.jpg" />
+            <img id="kimmel-bottom" src="/image/nyu.jpg" />
+            <img id="kimmel-front" src="/image/kimmel-front-square.jpg" />
+            <img id="kimmel-back" src="/image/kimmel-front-square.jpg" />
+            <img id="sky" src="/image/sky.jpg">
         </a-assets>
 
         <a-sky id="skybox"
@@ -27,26 +125,60 @@
 
         <!-- Position = "(left<->right) (down<->up) (far<->near)" -->
         <!-- Rotation = "(x, y, z)" -->
-        <a-box id="kimmel"
-          position="0 -0.3 -3"
-          rotation="0 0 0"
-          scale="1 2 1"
-          material="src: #nyu"
-          shadow>
+        <a-box id="kimmel-model"
+            position="0 -0.3 -3"
+            rotation="0 15 0"
+            height="1"
+            width="0.743"
+            depth="1.286"
+            multisrc="srcs: #kimmel-right,#kimmel-left,#kimmel-top,#kimmel-bottom,#kimmel-front,#kimmel-back"
+            shadow>
+        </a-box>
+
+        <a-box id="kimmel-floor-0"
+            clickable
+            a-click="text: 'kimmel fl. 0 clicked'"
+            highlight-status="active: false"
+            position="0 -0.56 -3"
+            rotation="0 15 0"
+            height="0.50"
+            width="0.75"
+            depth="1.3"
+            color="orange"
+            opacity="0"
+            shadow>
+        </a-box>
+
+        <a-box id="kimmel-floor-1"
+            clickable
+            a-click="text: 'kimmel fl. 0 clicked'"
+            highlight-status="active: false"
+            position="0 -0.05 -3"
+            rotation="0 15 0"
+            height="0.52"
+            width="0.75"
+            depth="1.3"
+            color="orange"
+            opacity="0"
+            shadow>
         </a-box>
 
         <a-circle
-          position="0 -1.3 -3"
-          rotation="-90 0 0"
-          radius="1.2"
-          material="color: #33BBBB"
-          shadow>
+            position="0 -0.8 -3"
+            rotation="-90 0 0"
+            radius="1.3"
+            material="color: #22B850"
+            shadow>
         </a-circle>
 
         <!-- <a-light type="ambient"></a-light>
         <a-light type="directional" intensity="1.6" position="-5 4 -1.2"></a-light> -->
 
-        <a-entity camera look-controls orbit-controls="target: 0 -0.8 -3; minDistance: 1.3; maxDistance: 8; rotateSpeed: 0.04; minPolarAngle: 17; maxPolarAngle: 83; initialPosition: 0 0 0"></a-entity> <!-- no look-controls attribute locks the camera -->
+        <a-entity
+            camera
+            orbit-controls="target: 0 -0.8 -3; minDistance: 1.3; maxDistance: 8; rotateSpeed: 0.04; minPolarAngle: 17; maxPolarAngle: 83; initialPosition: 0 0 0">
+        </a-entity>
+        <a-entity cursor="rayOrigin: mouse;" raycaster="objects: [clickable];"></a-entity>
     </a-scene>
 </body>
 
