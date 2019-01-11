@@ -2,35 +2,63 @@
 <html>
 
 <head>
-    <title>Kimmel Club Fest WIP</title>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+    <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" />
-    <!-- Include A-Frame and extras -->
-    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-orbit-controls@1.0.0/dist/aframe-orbit-controls.min.js"></script>
-    <script src="https://unpkg.com/aframe-supercraft-loader@1.1.3/dist/aframe-supercraft-loader.js"></script>
+    <title>Kimmel Club Fest WIP</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <style>
+    html {
+        touch-action: manipulation;
+    }
+    </style>
+    <!-- Include A-Frame Master and extras -->
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@cb4de2e19d577e9b5c34f01efe1c1d96c1d1c2e0/dist/aframe-master.min.js"></script>
+    <script src="https://unpkg.com/aframe-orbit-controls@1.2.0/dist/aframe-orbit-controls.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.7.0/dist/aframe-look-at-component.min.js"></script>
     <!-- This script is only for different textures on multi-sided primitives, won't be needed with a model -->
     <script src="https://cdn.rawgit.com/elbobo/aframe-multisrc-component/b6d23310/dist/0.3/aframe-multisrc-component.js"></script>
     <!-- Include ar.js for A-Frame -->
     <!-- <script src="/static/js/aframe-ar.js"></script> -->
 
     <script>
-        // Adds an event listener for mousedown events, calling mouseCheck() if so.
+        // Hide A-Frame's injected VR-mode button.
+        window.onload = function() {
+            var elms = document.getElementsByClassName('a-enter-vr');
+            elms[0].style.visibility = 'hidden';
+        };
+
+        // A solution for using the look-at and orbit-controls A-Frame components in tandem.
+        // Open source contribution potential to make this less of a hack.
+        // Detail from this issue with the solution: https://github.com/supermedium/superframe/issues/200
+        AFRAME.registerComponent('camera-facer', {
+            tick: function() {
+                let cameraPosition = camera.getObject3D('camera').position;
+                camerarig.setAttribute('position', cameraPosition);
+            },
+            // Testing implementing touch event response
+            init: function() {
+            //    this.el.sceneEl.addEventListener('touchstart', respond);
+            }
+        });
+
+
+
+        // Adds an event listener for mouse events, using mouseCheck() to follow up from mousedowns.
         AFRAME.registerComponent('a-click', {
             schema: { // Attributes
-                text: {default: 'Something was clicked!'},
-                mousedown: {type: 'boolean', default: false},
-                mousemoved: {type: 'boolean', default: false}
+                mouseDown: {type: 'boolean', default: false},
+                mouseMoved: {type: 'boolean', default: false},
+                opacityStart: {type: 'float', default: 0},
+                opacityActive: {type: 'float', default: 0.5}
             },
-
             init: function () {
                 var el = this.el;
                 el.addEventListener('mousedown', (evt) => {
-                    evt.preventDefault()
-                    // Using the mousedown schema, register only the first click to prevent multitouch issues
-                    if (!el.getAttribute('a-click').mousedown) {
-                        el.setAttribute('a-click', {mousedown: true});
-                        el.setAttribute('opacity', 0.5);
+                    console.log(evt);
+                    // Using the mouseDown schema, register only the first click to prevent multitouch issues
+                    if (!el.getAttribute('a-click').mouseDown) {
+                        el.setAttribute('a-click', {mouseDown: true});
+                        el.setAttribute('opacity', el.getAttribute('a-click').opacityActive);
                         // Alternative to all this, would it make more sense to only look
                         // for clicks as quick successions?
                         mouseCheck(evt);
@@ -39,79 +67,46 @@
             }
         });
 
-        // Add temporary listeners until a mouseup event occurs
+        // Temporarily add listeners until a mouseup event occurs, upListener removes them.
         function mouseCheck(e) {
             var el = e.target;
-            console.log('mousedown on: ' + el.id);
+            //console.log('mousedown on: ' + el.id);
             el.addEventListener('mouseleave', leaveListener);
             el.addEventListener('mouseenter', enterListener);
             el.addEventListener('mouseup', upListener);
-            // ESSENTIAL CLOSURE TIP: Event callback functions are ALWAYS passed an event parameter!!!
+            // ESSENTIAL CLOSURE TIP: Event callback functions are ALWAYS passed to the event as a parameter!! Much easier to remove listeners without attributes.
         }
 
         function leaveListener() {
             //console.log('mouse left');
-            el.setAttribute('a-click', {mousemoved: true});
-            this.setAttribute('opacity', 0);
+            this.setAttribute('a-click', {mouseMoved: true});
+            this.setAttribute('opacity', this.getAttribute('a-click').opacityStart);
         }
         function enterListener() {
             //console.log('mouse entered');
-            if (this.getAttribute('a-click').mousemoved) {
-                this.setAttribute('a-click', {mousemoved: false});
-                this.setAttribute('opacity', 0.5);
+            if (this.getAttribute('a-click').mouseMoved) {
+                this.setAttribute('a-click', {mouseMoved: false});
+                this.setAttribute('opacity', this.getAttribute('a-click').opacityActive);
             }
         }
         function upListener() {
             var el = event.target;
-            console.log('Did mouse move? ' + el.getAttribute('a-click').mousemoved);
-            if (!this.getAttribute('a-click').mousemoved) {
-                // Check for active highlighting
-                //if (el.getAttribute('highlight-status').active) {
-                    // Swap display for this floor
-                //alert('Load ' + el.id + ' :)');
-                //}
-                // else {
-                //     // emit highlight-status
-                //     el.setAttribute('highlight-status', {event: 'highlight-update', active: true});
-                //     el.emit('highlight-update');
-                // }
-                el.setAttribute('opacity', 0);
-                console.log(el.id + ' clicked!');
+            //console.log('Different mouseup element? ' + el.getAttribute('a-click').mouseMoved);
+            if (!el.getAttribute('a-click').mouseMoved) {
+                el.setAttribute('opacity', el.getAttribute('a-click').opacityStart);
+                console.log(el.id + ' clicked');
             }
-            el.setAttribute('a-click', {mousemoved: false});
-            el.setAttribute('a-click', {mousedown: false});
+            el.setAttribute('a-click', {mouseMoved: false});
+            el.setAttribute('a-click', {mouseDown: false});
             el.removeEventListener('mouseleave', leaveListener);
             el.removeEventListener('mouseenter', enterListener);
             el.removeEventListener('mouseup', upListener);
         }
-
-        // Maintains a highlight status and adds a status listener.
-        // AFRAME.registerComponent('highlight-status', {
-        //     schema: {
-        //         event: {type: 'string', default: ''},
-        //         active: {type: 'boolean', default: false}
-        //     },
-        //     init: function () {
-        //         var el = this.el;
-        //         el.addEventListener('highlight-update', (evt) => {
-        //             console.log(this);
-        //             // console.log(el);
-        //             if (el.id != this.el.id) {
-        //                 el.setAttribute('opacity', 0);
-        //             }
-        //             else {
-        //                 // Add highlighting to this element
-        //                 el.setAttribute('opacity', 0.5);
-        //             }
-        //         });
-        //     }
-        // });
-
     </script>
 </head>
 
 <body style='margin: 0px; overflow: hidden;'>
-    <a-scene id="scene">
+    <a-scene camera-facer id="scene" cursor="rayOrigin: mouse" raycaster="objects: .clickable">
         <!-- Use this Asset Management System to ensure assets are cached and loaded before rendering -->
         <a-assets>
             <img id="kimmel-right" src="/image/kimmel-side-square.jpg" />
@@ -140,10 +135,8 @@
             shadow>
         </a-box>
 
-        <a-box id="kimmel-floor-0"
-            clickable
-            a-click="text: 'kimmel fl. 0 clicked'"
-            highlight-status="active: false"
+        <a-box id="kimmel-floor-0" class="clickable"
+            a-click
             position="0 -0.56 -3"
             rotation="0 15 0"
             height="0.50"
@@ -154,10 +147,8 @@
             shadow>
         </a-box>
 
-        <a-box id="kimmel-floor-1"
-            clickable
-            a-click="text: 'kimmel fl. 0 clicked'"
-            highlight-status="active: false"
+        <a-box id="kimmel-floor-1" class="clickable"
+            a-click
             position="0 -0.05 -3"
             rotation="0 15 0"
             height="0.52"
@@ -176,14 +167,21 @@
             shadow>
         </a-circle>
 
+        <a-box class="clickable"
+            a-click="opacityStart: 1; opacityActive: 0.5"
+            look-at="#camerarig"
+            position="0.5 0.5 -3"
+            scale="0.2 0.2 0.2"
+            color="orange">
+        </a-box>
+
         <!-- <a-light type="ambient"></a-light>
         <a-light type="directional" intensity="1.6" position="-5 4 -1.2"></a-light> -->
-
-        <a-entity
+        <a-box id="camerarig" position="0 0 0" scale="1 1 1" opacity="0"></a-box>
+        <a-entity id="camera"
             camera
             orbit-controls="target: 0 -0.8 -3; minDistance: 1.3; maxDistance: 8; rotateSpeed: 0.04; minPolarAngle: 17; maxPolarAngle: 83; initialPosition: 0 0 0">
         </a-entity>
-        <a-entity cursor="rayOrigin: mouse;" raycaster="objects: [clickable];"></a-entity>
     </a-scene>
 </body>
 
