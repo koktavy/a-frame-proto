@@ -12,9 +12,10 @@
     }
     </style>
     <!-- Include A-Frame Master and extras -->
-    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@cb4de2e19d577e9b5c34f01efe1c1d96c1d1c2e0/dist/aframe-master.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@76a666e65127337159d7447b304bf114acc35f25/dist/aframe-master.min.js"></script>
     <script src="https://unpkg.com/aframe-orbit-controls@1.2.0/dist/aframe-orbit-controls.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.7.0/dist/aframe-look-at-component.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@4.1.2/dist/aframe-event-set-component.min.js"></script>
     <!-- This script is only for different textures on multi-sided primitives, won't be needed with a model -->
     <script src="https://cdn.rawgit.com/elbobo/aframe-multisrc-component/b6d23310/dist/0.3/aframe-multisrc-component.js"></script>
     <!-- Include ar.js for A-Frame -->
@@ -41,8 +42,6 @@
             }
         });
 
-
-
         // Adds an event listener for mouse events, using mouseCheck() to follow up from mousedowns.
         AFRAME.registerComponent('a-click', {
             schema: { // Attributes
@@ -54,13 +53,10 @@
             init: function () {
                 var el = this.el;
                 el.addEventListener('mousedown', (evt) => {
-                    console.log(evt);
                     // Using the mouseDown schema, register only the first click to prevent multitouch issues
                     if (!el.getAttribute('a-click').mouseDown) {
-                        el.setAttribute('a-click', {mouseDown: true});
                         el.setAttribute('opacity', el.getAttribute('a-click').opacityActive);
-                        // Alternative to all this, would it make more sense to only look
-                        // for clicks as quick successions?
+                        el.setAttribute('a-click', {mouseDown: true});
                         mouseCheck(evt);
                     }
                 });
@@ -71,9 +67,9 @@
         function mouseCheck(e) {
             var el = e.target;
             //console.log('mousedown on: ' + el.id);
+            el.addEventListener('mouseup', upListener);
             el.addEventListener('mouseleave', leaveListener);
             el.addEventListener('mouseenter', enterListener);
-            el.addEventListener('mouseup', upListener);
             // ESSENTIAL CLOSURE TIP: Event callback functions are ALWAYS passed to the event as a parameter!! Much easier to remove listeners without attributes.
         }
 
@@ -91,22 +87,21 @@
         }
         function upListener() {
             var el = event.target;
-            //console.log('Different mouseup element? ' + el.getAttribute('a-click').mouseMoved);
-            if (!el.getAttribute('a-click').mouseMoved) {
-                el.setAttribute('opacity', el.getAttribute('a-click').opacityStart);
-                console.log(el.id + ' clicked');
-            }
             el.setAttribute('a-click', {mouseMoved: false});
             el.setAttribute('a-click', {mouseDown: false});
             el.removeEventListener('mouseleave', leaveListener);
             el.removeEventListener('mouseenter', enterListener);
+            if (!el.getAttribute('a-click').mouseMoved) {
+                el.setAttribute('opacity', el.getAttribute('a-click').opacityStart);
+                console.log(el.id + ' clicked');
+            }
             el.removeEventListener('mouseup', upListener);
         }
     </script>
 </head>
 
 <body style='margin: 0px; overflow: hidden;'>
-    <a-scene camera-facer id="scene" cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+    <a-scene camera-facer id="scene" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable">
         <!-- Use this Asset Management System to ensure assets are cached and loaded before rendering -->
         <a-assets>
             <img id="kimmel-right" src="/image/kimmel-side-square.jpg" />
@@ -136,7 +131,8 @@
         </a-box>
 
         <a-box id="kimmel-floor-0" class="clickable"
-            a-click
+            event-set__down="_event: mousedown; opacity: 0.5"
+            event-set__up="_event: mouseup; opacity: 0"
             position="0 -0.56 -3"
             rotation="0 15 0"
             height="0.50"
@@ -148,7 +144,7 @@
         </a-box>
 
         <a-box id="kimmel-floor-1" class="clickable"
-            a-click
+            a-click="opacityStart: 0; opacityActive: 0.5"
             position="0 -0.05 -3"
             rotation="0 15 0"
             height="0.52"

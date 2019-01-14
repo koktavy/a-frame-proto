@@ -1,0 +1,52 @@
+<!doctype HTML>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@4.1.2/dist/aframe-event-set-component.min.js"></script>
+    <script>
+        AFRAME.registerComponent('a-click', {
+            init: function () {
+                var el = this.el;
+                el.addEventListener('mousedown', (evt) => {
+                    el.setAttribute('opacity', 0.5);
+                });
+                el.addEventListener('mouseup', (evt) => {
+                    el.setAttribute('opacity', 1);
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <a-scene>
+        <a-box class="clickable"
+            a-click
+            position="0 1.1 -3"
+            color="maroon">
+        </a-box>
+
+        <a-box class="clickable"
+            event-set__down="_event: mousedown; opacity: 0.5"
+            event-set__up="_event: mouseup; opacity: 1"
+            position="0 0 -3"
+            color="teal">
+        </a-box>
+
+        <a-box class="clickable"
+            event-set__down="_event: mousedown; opacity: 0.5"
+            position="0 -1.1 -3"
+            color="orange">
+        </a-box>
+
+        <a-entity
+            camera
+            cursor="rayOrigin: mouse; fuse: false"
+            raycaster="objects: .clickable">
+        </a-entity>
+    </a-scene>
+</body>
+
+</html>
